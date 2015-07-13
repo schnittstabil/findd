@@ -1,0 +1,6 @@
+PyHamcrest
+behave
+coverage
+mock
+nose
+pinocchio

@@ -1,0 +1,4 @@
+[run]
+branch=False
+parallel=True
+source=findd
