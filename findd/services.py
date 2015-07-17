@@ -74,6 +74,11 @@ class HashQueue(object):
     def process(self):
         progress = Progress('hashing')
         bytes_hashed = 0
+        __LOG__.debug(
+            'hashing %d files (%s)',
+            len(self._queue),
+            sizeof_fmt(self.bytes_to_hash)
+        )
         progress.start(self, maxval=self.bytes_to_hash)
         for (file_path, file_size, dest) in self._queue:
             __LOG__.debug(
