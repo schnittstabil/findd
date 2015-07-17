@@ -130,7 +130,7 @@ class ParserBuilder(object):
         parser.add_argument(
             '--limit',
             metavar='N',
-            default=0,
+            default=-1,
             type=int,
             help='limit duplicate results',
         )

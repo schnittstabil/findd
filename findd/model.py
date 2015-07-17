@@ -66,7 +66,9 @@ class FileRegistry(object):
         """
         self.session = session
 
-    def find_duplicates(self, limit=0):
+    def find_duplicates(self, limit=-1):
+        if limit == 0:
+            return
         query = self.session.query(File).order_by(
             File.size.desc(),
             File.sha512,
