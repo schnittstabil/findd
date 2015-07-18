@@ -6,12 +6,16 @@ from blinker import signal
 import progressbar
 
 
+DEBOUNCE_THRESHOLD = 0.05
+
+
 def hr(text='', fillchar='*'):
     cols = get_terminal_size((80, 20)).columns
     return text.center(cols, fillchar)
 
 
 class ProgressBarManager(object):
+
     def __init__(self):
         self.bars = {}
         self.last_update = {}
@@ -63,8 +67,8 @@ class ProgressBarManager(object):
         self.last_update[task] = 0
 
     def update(self, task, val=None):
-        if time.time() - self.last_update[task] < 0.05:
-            return
+        if time.time() - self.last_update[task] < DEBOUNCE_THRESHOLD:
+            return  # pragma: no cover
         if val is None:
             self.bars[task].next()
         else:

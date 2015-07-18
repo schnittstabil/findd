@@ -79,8 +79,9 @@ def step_impl(context):
 @when('I run findd with {args}')
 def step_impl(context, args):
     args = ast.literal_eval(args)
-    with patch('sys.exit') as exit:
+    with patch('findd.cli.sys.exit') as exit:
         import findd.cli
+        findd.cli.widgets.DEBOUNCE_THRESHOLD = 0
 
         findd.cli.main(args)
         if exit.call_args is None:

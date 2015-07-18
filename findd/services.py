@@ -38,10 +38,10 @@ class Findd(object):
         self.db_session.commit()
         return count
 
-    def duplicates(self, limit=0):
+    def duplicates(self, limit=-1):
         progress = Progress('find duplicates')
         index = 0
-        progress.start(self, maxval=None if limit is 0 else limit)
+        progress.start(self, maxval=limit if limit > 0 else None)
         for i in self.file_registry.find_duplicates(limit=limit):
             yield i
             index = index + 1
