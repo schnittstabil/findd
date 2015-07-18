@@ -60,20 +60,17 @@ class HashQueue(object):
     def __init__(self):
         self._queue = []
         self.bytes_to_hash = 0
+        self.errors = []
+        self.processed = []
+        self.bytes_processed = 0
 
     def append(self, file_path, file_size, dest=None):
         self._queue.append((file_path, file_size, dest or {}))
         self.bytes_to_hash = self.bytes_to_hash + file_size
 
-    def reset(self):
-        old_queue = self._queue
-        self._queue = []
-        self.bytes_to_hash = 0
-        return old_queue
-
     def process(self):
         progress = Progress('hashing')
-        bytes_hashed = 0
+
         __LOG__.debug(
             'hashing %d files (%s)',
             len(self._queue),
@@ -86,12 +83,19 @@ class HashQueue(object):
                 quote(file_path),
                 sizeof_fmt(file_size)
             )
-            dest.update(hashfile(file_path))
-            bytes_hashed = bytes_hashed + file_size
-            progress.update(self, val=bytes_hashed)
+            try:
+                hash_values = hashfile(file_path)
+            except Exception as err:
+                __LOG__.exception('hashing of %s failed: ', file_path)
+                self.errors.append(err)
+            else:
+                dest.update(hash_values)
+                self.processed.append(dest)
+            self.bytes_processed = self.bytes_processed + file_size
+            progress.update(self, val=self.bytes_processed)
         progress.finish(self)
-        __LOG__.debug('%d files hashed', len(self._queue))
-        return self.reset()
+        __LOG__.debug('%d files hashed', len(self.processed))
+        return self.processed
 
 
 class _UpdateCommand(object):
@@ -159,7 +163,6 @@ class _UpdateCommand(object):
                     mtime=int(entry.stats.st_mtime),
                     size=entry.stats.st_size,
                 )
-                self.file_registry.add(db_file)
                 self.hash_queue.append(
                     entry.path,
                     entry.stats.st_size,
@@ -171,7 +174,8 @@ class _UpdateCommand(object):
 
     def execute(self):
         processed_files = self._step0_scan_db() + self._step1_scan_fs()
-        self.hash_queue.process()
+        for db_file in self.hash_queue.process():
+            self.file_registry.add(db_file)
         self.visited_files = []
         __LOG__.debug('%d files processed', processed_files)
         return processed_files
