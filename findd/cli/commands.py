@@ -29,7 +29,7 @@ def list_duplicates(opts):
         ctx = context.create_from_base_dir()
         ctx.assert_findd_dir_exists()
         for dups in ctx.findd().duplicates(limit=opts.limit):
-            view.print_duplicates(ctx.base_dir, dups)
+            view.print_duplicates(dups)
 
 
 def process_duplicates(opts):
@@ -37,7 +37,8 @@ def process_duplicates(opts):
         ctx = context.create_from_base_dir()
         ctx.assert_findd_dir_exists()
         for dups in ctx.findd().duplicates(limit=opts.limit):
-            call_args = [opts.cmd] + opts.args + [afile.path for afile in dups]
+            paths = [afile.relpath for afile in dups]
+            call_args = [opts.cmd] + opts.args + paths
             view.print_subprocess_call(call_args)
             subprocess.call(call_args)
-            view.print_duplicates(ctx.base_dir, dups)
+            view.print_duplicates(dups)

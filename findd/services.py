@@ -1,6 +1,9 @@
 import errno
 import logging
 import os
+from os.path import abspath
+from os.path import join
+from os.path import relpath
 
 from shellescape import quote
 
@@ -12,6 +15,29 @@ from findd.utils.progress import Progress
 
 
 __LOG__ = logging.getLogger(__name__)
+
+
+def dir_aware_file_registry(base_dir, file_registry):
+    model_find_all = file_registry.find_all
+    model_find_duplicates = file_registry.find_duplicates
+
+    def set_paths(afile):
+        afile.base_dir = base_dir
+        afile.abspath = abspath(join(afile.base_dir, afile.path))
+        afile.relpath = relpath(afile.abspath)
+        return afile
+
+    def find_all_(*args, **kwargs):
+        for afile in model_find_all(*args, **kwargs):
+            yield set_paths(afile)
+
+    def find_duplicates_(*args, **kwargs):
+        for dups in model_find_duplicates(*args, **kwargs):
+            yield [set_paths(afile) for afile in dups]
+
+    file_registry.find_all = find_all_
+    file_registry.find_duplicates = find_duplicates_
+    return file_registry
 
 
 class Findd(object):
@@ -51,7 +77,9 @@ class Findd(object):
     @property
     def file_registry(self):
         if self._file_registry is None:
-            self._file_registry = model.FileRegistry(self.db_session)
+            self._file_registry = dir_aware_file_registry(
+                self.base_dir, model.FileRegistry(self.db_session)
+            )
         return self._file_registry
 
 
@@ -120,7 +148,7 @@ class _UpdateCommand(object):
         for db_file in self.file_registry.find_all():
             index = index + 1
             progress.update(self, val=index)
-            abs_path = os.path.join(self.base_dir, db_file.path)
+            abs_path = join(self.base_dir, db_file.path)
             try:
                 changed = False
                 stat = os.stat(abs_path)

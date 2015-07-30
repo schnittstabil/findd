@@ -16,3 +16,14 @@ Feature: run duplicates
     Then the exit_code is zero
     And  the file contents of 'RESULT.txt' matches r"a dir/b"
     And  the file contents of 'RESULT.txt' matches r"dir/a dir/c"
+
+  Scenario: Run `run` in a subdirectory
+    Given an initialized directory
+    And containing files:
+      | path   | content |
+      | cwd/a  | 123     |
+      | dir/b  | 123     |
+    When I run findd with ['update']
+    And  I run findd with ['run', '-v', '--', 'python', '-c', 'import os; import sys; f = open("RESULT.txt", "a"); f.write(str(os.path.exists(sys.argv[1])) + ":" + sys.argv[1]); f.close()'] in 'cwd'
+    Then the exit_code is zero
+    And  the file contents of 'RESULT.txt' matches r"True:"

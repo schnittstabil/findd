@@ -1,7 +1,4 @@
 import logging
-from os.path import join
-from os.path import normpath
-from os.path import relpath
 from shellescape import quote
 
 from findd.cli.widgets import hr
@@ -9,14 +6,6 @@ from findd.cli.widgets import ProgressBarManager
 
 
 __LOG__ = logging.getLogger(__name__)
-
-
-def _format_path(base_dir, path):
-    return quote(relpath(normpath(join(base_dir, path))))
-
-
-def _format_duplicates(base_dir, duplicates):
-    return [_format_path(base_dir, afile.path) for afile in duplicates]
 
 
 class BaseView(object):
@@ -47,8 +36,8 @@ class ListDuplicatesView(BaseView):
     def __init__(self):
         BaseView.__init__(self, False)
 
-    def print_duplicates(self, base_dir, duplicates):
-        print(' '.join(_format_duplicates(base_dir, duplicates)))
+    def print_duplicates(self, duplicates):
+        print(' '.join([quote(afile.relpath) for afile in duplicates]))
 
 
 class ProcessDuplicatesView(BaseView):
@@ -58,9 +47,9 @@ class ProcessDuplicatesView(BaseView):
     def print_subprocess_call(self, args):
         __LOG__.debug(' '.join(args))
 
-    def print_duplicates(self, base_dir, duplicates):
+    def print_duplicates(self, duplicates):
         if __LOG__.isEnabledFor(logging.INFO):
             print(hr(' processed duplicates '))
-            for path in _format_duplicates(base_dir, duplicates):
+            for path in [quote(afile.relpath) for afile in duplicates]:
                 print(path)
             print(hr())
