@@ -76,18 +76,28 @@ def step_impl(context):
             os.utime(file_path, (atime, mtime))
 
 
-@when('I run findd with {args}')
-def step_impl(context, args):
+def run_findd(context, args, cwd=None):
     args = ast.literal_eval(args)
+    if cwd is not None:
+        cwd = ast.literal_eval(cwd)
     with patch('findd.cli.sys.exit') as exit:
         import findd.cli
         findd.cli.widgets.DEBOUNCE_THRESHOLD = 0
+
+        if cwd is not None:
+            os.chdir(cwd)
 
         findd.cli.main(args)
         if exit.call_args is None:
             context.exit_code = None
         else:
             context.exit_code = exit.call_args[0][0]
+
+
+when('I run findd with {args} in {cwd}')(run_findd)
+
+
+when('I run findd with {args}')(run_findd)
 
 
 @when('I delete the files {files}')

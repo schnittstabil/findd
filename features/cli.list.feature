@@ -38,6 +38,17 @@ Feature: list duplicates
     Then the exit_code is zero
     And  the stdout_capture matches r"^'a' 'dir[/\\]b'$"
 
+  Scenario: Run `list` in a subdirectory
+    Given an initialized directory
+    And containing files:
+      | path   | content |
+      | cwd/a  | 123     |
+      | dir/b  | 123     |
+    When I run findd with ['update'] in 'cwd'
+    And  I run findd with ['list']
+    Then the exit_code is zero
+    And  the stdout_capture matches r"^'a' '..[/\\]dir[/\\]b'$"
+
   Scenario: Run `list` in an initialized project containing duplicates with wrong encoded names
     Given an initialized directory
     And containing files:
