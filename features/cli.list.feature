@@ -72,6 +72,18 @@ Feature: list duplicates
     And  the stdout_capture_ matches r"^1$"
     And  the exit_code is zero
 
+  Scenario: Run `list` and broken Pipe
+    Given an initialized directory
+    And containing files:
+      | path               | content |
+      | a                  | 123     |
+      | dir/wrong�encoded  | 123     |
+    When I run findd with ['update']
+    And  I run 'python {FINDD} list | python -c "print(True)"' in a shell
+    Then the stderr_capture_ matches r"^$"
+    And  the stdout_capture_ matches r"^True$"
+    And  the exit_code is zero
+
   Scenario: Run `list` but limit results
     Given an initialized directory
     And containing files:

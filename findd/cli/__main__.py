@@ -1,3 +1,4 @@
+import errno
 import logging
 import sys
 
@@ -26,4 +27,17 @@ def main(args=None):
 
 
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    def ignore_broken_pipe(f):
+        try:
+            f()
+        except IOError as err:
+            if err.errno != errno.EPIPE:
+                raise
+
+    try:
+        ignore_broken_pipe(main)
+    finally:
+        ignore_broken_pipe(sys.stdout.flush)
+        ignore_broken_pipe(sys.stdout.close)
+        ignore_broken_pipe(sys.stderr.flush)
+        ignore_broken_pipe(sys.stderr.close)
