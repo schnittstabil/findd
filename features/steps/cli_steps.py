@@ -4,6 +4,8 @@ import importlib
 from mock import patch
 import os
 import shutil
+import subprocess
+import sys
 
 from behave import given, when, then
 from hamcrest import assert_that
@@ -13,6 +15,15 @@ from hamcrest import matches_regexp
 from hamcrest import not_none
 
 TEMP_DIR = os.path.join(os.getcwd(), 'temp')
+FINDD = os.path.join(os.getcwd(), 'findd', 'cli', '__main__.py')
+
+
+if sys.version_info < (3,):
+    def u(s):
+        return s.decode('utf-8')
+else:
+    def u(s):
+        return s
 
 
 def mkdir_p(path):
@@ -76,11 +87,30 @@ def step_impl(context):
             os.utime(file_path, (atime, mtime))
 
 
+@when('I run {args} in a shell')
+def step_impl(context, args):
+    args = ast.literal_eval(args)
+    process = subprocess.Popen(
+        args.format(FINDD=FINDD),
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        shell=True,
+    )
+    (stdoutdata, stderrdata) = process.communicate()
+
+    if sys.version_info >= (3,):
+        stdoutdata = stdoutdata.decode('utf-8')
+        stderrdata = stderrdata.decode('utf-8')
+
+    context.stdout_capture_ = stdoutdata
+    context.stderr_capture_ = stderrdata
+    context.exit_code = process.returncode
+
+
 def run_findd(context, args, cwd=None):
     args = ast.literal_eval(args)
     if cwd is not None:
         cwd = ast.literal_eval(cwd)
-    with patch('findd.cli.sys.exit') as exit:
+    with patch('findd.cli.__main__.sys.exit') as exit:
         import findd.cli
         findd.cli.widgets.DEBOUNCE_THRESHOLD = 0
 
@@ -121,7 +151,7 @@ def step_impl(context, path, expr):
     pattern = ast.literal_eval(expr)
     with open(file_path, 'r') as text_file:
         actual = text_file.read()
-    assert_that(actual, matches_regexp(pattern))
+    assert_that(u(actual), matches_regexp(pattern))
 
 
 @then('the {attr} matches {expr}')
@@ -130,7 +160,7 @@ def step_impl(context, attr, expr):
     if hasattr(actual, 'getvalue'):
         actual = actual.getvalue()
     pattern = ast.literal_eval(expr)
-    assert_that(actual, matches_regexp(pattern))
+    assert_that(u(actual), matches_regexp(pattern))
 
 
 @then('the {attr} is non-zero')

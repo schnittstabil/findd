@@ -1,11 +1,20 @@
 import logging
 from shellescape import quote
+import sys
 
 from findd.cli.widgets import hr
 from findd.cli.widgets import ProgressBarManager
 
 
 __LOG__ = logging.getLogger(__name__)
+
+
+if sys.version_info < (3,):
+    def format_path(path):
+        return quote(path).encode('utf-8')
+else:
+    def format_path(path):
+        return quote(path)
 
 
 class BaseView(object):
@@ -37,7 +46,7 @@ class ListDuplicatesView(BaseView):
         BaseView.__init__(self, False)
 
     def print_duplicates(self, duplicates):
-        print(' '.join([quote(afile.relpath) for afile in duplicates]))
+        print(' '.join([format_path(afile.relpath) for afile in duplicates]))
 
 
 class ProcessDuplicatesView(BaseView):
@@ -50,6 +59,7 @@ class ProcessDuplicatesView(BaseView):
     def print_duplicates(self, duplicates):
         if __LOG__.isEnabledFor(logging.INFO):
             print(hr(' processed duplicates '))
-            for path in [quote(afile.relpath) for afile in duplicates]:
+            paths = [format_path(afile.relpath) for afile in duplicates]
+            for path in paths:
                 print(path)
             print(hr())

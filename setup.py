@@ -52,7 +52,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
-            'findd=findd.cli:main'
+            'findd=findd.cli.__main__:main'
         ],
     },
 )
