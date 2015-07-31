@@ -1,7 +1,7 @@
 import ast
 import errno
 import importlib
-from mock import patch
+
 import os
 import shutil
 import subprocess
@@ -110,18 +110,13 @@ def run_findd(context, args, cwd=None):
     args = ast.literal_eval(args)
     if cwd is not None:
         cwd = ast.literal_eval(cwd)
-    with patch('findd.cli.__main__.sys.exit') as exit:
-        import findd.cli
-        findd.cli.widgets.DEBOUNCE_THRESHOLD = 0
 
         if cwd is not None:
             os.chdir(cwd)
 
-        findd.cli.main(args)
-        if exit.call_args is None:
-            context.exit_code = None
-        else:
-            context.exit_code = exit.call_args[0][0]
+    import findd.cli
+    findd.cli.widgets.DEBOUNCE_THRESHOLD = 0
+    context.exit_code = findd.cli.main(args)
 
 
 when('I run findd with {args} in {cwd}')(run_findd)

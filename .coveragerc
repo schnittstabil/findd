@@ -2,3 +2,4 @@
 branch=False
 parallel=True
 source=findd
+omit=findd/cli/__main__.py
