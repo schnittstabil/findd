@@ -36,6 +36,8 @@ if __name__ == "__main__":  # pragma: no cover
 
     try:
         ignore_broken_pipe(main)
+    except KeyboardInterrupt:
+        pass
     finally:
         ignore_broken_pipe(sys.stdout.flush)
         ignore_broken_pipe(sys.stdout.close)
