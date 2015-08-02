@@ -4,7 +4,6 @@ import logging
 import sqlalchemy
 
 from findd.services import Findd
-from findd.utils.unicode import u
 from findd.utils.path import parents
 
 
@@ -57,13 +56,13 @@ class Context(object):
 
 def search_base_dir(start_dir=None):
     if start_dir is None:
-        start_dir = u(os.getcwd())
+        start_dir = os.getcwd()
 
     for path in parents(start_dir):
         if os.path.exists(os.path.join(path, '.findd')):
             return path
 
-    return u(os.getcwd())
+    return os.getcwd()
 
 
 def create_from_base_dir(base_dir=None):

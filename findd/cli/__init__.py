@@ -22,8 +22,10 @@ def main(args=None):
     except Exception as err:
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             raise
+
         err_module = getattr(err, '__module__', '')
-        if err_module.split('.')[0] != 'findd':
-            raise  # pragma: no cover
-        logging.error(err)
-        return 1
+        if err_module.split('.')[0] == 'findd':
+            logging.error(err)
+            return 1
+
+        raise  # pragma: no cover

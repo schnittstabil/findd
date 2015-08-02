@@ -6,12 +6,11 @@ from findd.cli.views import InitView
 from findd.cli.views import ListDuplicatesView
 from findd.cli.views import ProcessDuplicatesView
 from findd.cli.views import UpdateView
-from findd.utils.unicode import u
 
 
 def init(_):
     with InitView():
-        ctx = context.create_from_base_dir(base_dir=u(os.getcwd()))
+        ctx = context.create_from_base_dir(base_dir=os.getcwd())
         ctx.assert_findd_dir_does_not_exists()
         os.makedirs(ctx.findd_dir)
         ctx.findd().init()

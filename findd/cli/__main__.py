@@ -1,28 +1,34 @@
 import errno
+import logging
 import sys
 
 import findd.cli
 
 
+if sys.version_info >= (3,):
+    import signal
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+
 def main(args=None):
     try:
-        return findd.cli.main(args)
+        exit_code = findd.cli.main(args)
+
+        # py2: "lost sys.stderr" workaround:
+        for flush in [sys.stdout.flush, sys.stderr.flush]:
+            try:
+                flush()
+            except:
+                pass
+
+        return exit_code
     except KeyboardInterrupt:
-        pass
-    except Exception as err:
-        if sys.version_info < (3,):
-            if not isinstance(err, IOError) or err.errno != errno.EPIPE:
-                raise
-        else:
-            if not isinstance(err, BrokenPipeError): # flake8: noqa
-                raise
-    finally:
-        for stream in [sys.stdout, sys.stderr]:
-            for f in [stream.flush, stream.close]:
-                try:
-                    f()
-                except:
-                    pass
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            raise
+    except IOError as err:
+        if err.errno == errno.EPIPE:
+            return 0
+        raise
 
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ from findd.utils.crypto import hashfile
 from findd.utils.format import sizeof_fmt
 from findd.utils.path import files_of_dir
 from findd.utils.progress import Progress
+from findd.utils.unicode import u, s
 
 
 __LOG__ = logging.getLogger(__name__)
@@ -162,7 +163,7 @@ class _UpdateCommand(object):
                     db_file.mtime = int(stat.st_mtime)
                     db_file.size = stat.st_size
                     self.hash_queue.append(abs_path, stat.st_size, db_file)
-                self.visited_files.append(db_file.path)
+                self.visited_files.append(s(db_file.path))
             except OSError as err:
                 if err.errno == errno.ENOENT:
                     __LOG__.debug('deleting %s', quote(db_file.path))
@@ -187,7 +188,7 @@ class _UpdateCommand(object):
             if rel_path not in self.visited_files:
                 new_files_found = new_files_found + 1
                 db_file = model.File(
-                    path=rel_path,
+                    path=u(rel_path),
                     mtime=int(entry.stats.st_mtime),
                     size=entry.stats.st_size,
                 )
