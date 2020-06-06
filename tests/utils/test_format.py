@@ -1,4 +1,4 @@
-from unittest import TestCase
+from .. import TestCase
 
 from findd.utils.format import sizeof_fmt
 

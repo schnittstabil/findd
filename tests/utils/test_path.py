@@ -4,7 +4,7 @@ from os.path import dirname
 from os.path import join
 from mock import patch
 from mock import Mock
-from unittest import TestCase
+from .. import TestCase
 
 import findd.utils.path as sut
 

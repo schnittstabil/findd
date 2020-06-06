@@ -1,6 +1,6 @@
 from io import BytesIO
 from mock import patch
-from unittest import TestCase
+from .. import TestCase
 
 from findd.utils.crypto import hashfile
 

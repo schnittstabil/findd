@@ -1,5 +1,5 @@
 from mock import patch
-from unittest import TestCase
+from . import TestCase
 
 from findd.services import HashQueue
 

@@ -1,4 +1,4 @@
-from unittest import TestCase
+from .. import TestCase
 
 from nose.plugins.attrib import attr
 
