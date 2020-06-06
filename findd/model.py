@@ -40,6 +40,7 @@ class File(BASE):
         for key, value in dict_.items():
             self[key] = value
 
+
 Index(
     'idx_duplicates',
     File.size.desc(),

@@ -38,7 +38,7 @@ Feature: update project
     And  I run findd with ['update']
     And  I run findd with ['list']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' 'dir[/\\]a'$"
+    And  the stdout_capture matches r"^a dir[/\\]a$"
 
   Scenario: Run `update` after changing files of same size
     Given an initialized directory
@@ -51,4 +51,4 @@ Feature: update project
     And  I run findd with ['update']
     And  I run findd with ['list']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' 'dir[/\\]a'$"
+    And  the stdout_capture matches r"^a dir[/\\]a$"

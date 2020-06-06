@@ -8,7 +8,7 @@ Install
 
 .. code-block:: bash
 
-   $ pip install findd
+   pip install findd
 
 
 Usage
@@ -16,7 +16,8 @@ Usage
 
 .. code-block::
 
-   $ findd --help
+   findd --help
+
    usage: findd [-h] [--version] {init,update,list,run} ...
 
    positional arguments:
@@ -39,51 +40,51 @@ Typical Workflow
 
 .. code-block:: bash
 
-   $ mkdir temp
-   $ cd temp
-   $ findd init
-   $ ls -A
-   .findd
+   mkdir temp
+   cd temp
+   findd init
+   ls -A
+   # .findd
 
 
    # create some duplicates
-   $ mkdir directory
-   $ echo a > directory/a.txt
-   $ echo b > directory/b.txt
-   $ echo c > directory/c.txt
-   $ cp -r directory directory_copy
-   $ tree -a
-   .
-   ├── directory
-   │   ├── a.txt
-   │   ├── b.txt
-   │   └── c.txt
-   └── directory_copy
-       ├── a.txt
-       ├── b.txt
-       └── c.txt
+   mkdir directory
+   echo a > directory/a.txt
+   echo b > directory/b.txt
+   echo c > directory/c.txt
+   cp -r directory directory_copy
+   tree -a
+   # .
+   # ├── directory
+   # │   ├── a.txt
+   # │   ├── b.txt
+   # │   └── c.txt
+   # └── directory_copy
+   #     ├── a.txt
+   #     ├── b.txt
+   #     └── c.txt
 
 
-   $ findd update -v
-   scanning db 100% |#####################################################|
-   scanning fs      |#####################################################|
-   hashing     100% |#####################################################|
+   findd update -v
+   # scanning db 100% |#####################################################|
+   # scanning fs      |#####################################################|
+   # hashing     100% |#####################################################|
 
 
-   $ findd list
-   'directory/a.txt' 'directory_copy/a.txt'
-   'directory/c.txt' 'directory_copy/c.txt'
-   'directory/b.txt' 'directory_copy/b.txt'
+   findd list
+   # 'directory/a.txt' 'directory_copy/a.txt'
+   # 'directory/c.txt' 'directory_copy/c.txt'
+   # 'directory/b.txt' 'directory_copy/b.txt'
 
 
    # remove a duplicate
-   $ rm 'directory_copy/c.txt'
+   rm 'directory_copy/c.txt'
 
 
-   $ findd update
-   $ findd list
-   'directory/a.txt' 'directory_copy/a.txt'
-   'directory/b.txt' 'directory_copy/b.txt'
+   findd update
+   findd list
+   # 'directory/a.txt' 'directory_copy/a.txt'
+   # 'directory/b.txt' 'directory_copy/b.txt'
 
 
 License

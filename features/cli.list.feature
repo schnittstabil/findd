@@ -25,7 +25,7 @@ Feature: list duplicates
     When I run findd with ['update']
     And  I run findd with ['list']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' 'dir[/\\]b'$"
+    And  the stdout_capture matches r"^a dir[/\\]b$"
 
   Scenario: Run `list` in an initialized project containing only duplicates
     Given an initialized directory
@@ -36,7 +36,7 @@ Feature: list duplicates
     When I run findd with ['update']
     And  I run findd with ['list']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' 'dir[/\\]b'$"
+    And  the stdout_capture matches r"^a dir[/\\]b$"
 
   Scenario: Run `list` in a subdirectory
     Given an initialized directory
@@ -47,7 +47,7 @@ Feature: list duplicates
     When I run findd with ['update'] in 'cwd'
     And  I run findd with ['list']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' '..[/\\]dir[/\\]b'$"
+    And  the stdout_capture matches r"^a ..[/\\]dir[/\\]b$"
 
   Scenario: Run `list` in an initialized project containing duplicates with wrong encoded names
     Given an initialized directory
@@ -59,7 +59,7 @@ Feature: list duplicates
     When I run findd with ['update']
     And  I run findd with ['list']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' 'dir[/\\]wrong.encoded2?' 'dir[/\\]wrong.encoded2?'$"
+    And  the stdout_capture matches r"^a 'dir[/\\]wrong.encoded2?' 'dir[/\\]wrong.encoded2?'$"
 
   Scenario: Pipe `list` with wrong encoded names
     Given an initialized directory
@@ -98,7 +98,7 @@ Feature: list duplicates
     When I run findd with ['update']
     And  I run findd with ['list', '--limit', '1']
     Then the exit_code is zero
-    And  the stdout_capture matches r"^'a' 'dir[/\\]b'$"
+    And  the stdout_capture matches r"^a dir[/\\]b$"
 
   Scenario: Run `list` but limit=0 results in empty output
     Given an initialized directory

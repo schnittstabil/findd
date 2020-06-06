@@ -18,14 +18,6 @@ TEMP_DIR = os.path.join(os.getcwd(), 'temp')
 FINDD = os.path.join(os.getcwd(), 'findd', 'cli', '__main__.py')
 
 
-if sys.version_info < (3,):
-    def u(s):
-        return s.decode('utf-8')
-else:
-    def u(s):
-        return s
-
-
 def mkdir_p(path):
     try:
         os.makedirs(path)
@@ -97,9 +89,8 @@ def step_impl(context, args):
     )
     (stdoutdata, stderrdata) = process.communicate()
 
-    if sys.version_info >= (3,):
-        stdoutdata = stdoutdata.decode('utf-8')
-        stderrdata = stderrdata.decode('utf-8')
+    stdoutdata = stdoutdata.decode('utf-8')
+    stderrdata = stderrdata.decode('utf-8')
 
     context.stdout_capture_ = stdoutdata
     context.stderr_capture_ = stderrdata
@@ -146,7 +137,7 @@ def step_impl(context, path, expr):
     pattern = ast.literal_eval(expr)
     with open(file_path, 'r') as text_file:
         actual = text_file.read()
-    assert_that(u(actual), matches_regexp(pattern))
+    assert_that(actual, matches_regexp(pattern))
 
 
 @then('the {attr} matches {expr}')
@@ -155,7 +146,7 @@ def step_impl(context, attr, expr):
     if hasattr(actual, 'getvalue'):
         actual = actual.getvalue()
     pattern = ast.literal_eval(expr)
-    assert_that(u(actual), matches_regexp(pattern))
+    assert_that(actual, matches_regexp(pattern))
 
 
 @then('the {attr} is non-zero')

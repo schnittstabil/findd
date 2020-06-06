@@ -1,27 +1,16 @@
 import errno
 import logging
+import signal
 import sys
 
 import findd.cli
 
-
-if sys.version_info >= (3,):
-    import signal
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
 def main(args=None):
     try:
-        exit_code = findd.cli.main(args)
-
-        # py2: "lost sys.stderr" workaround:
-        for flush in [sys.stdout.flush, sys.stderr.flush]:
-            try:
-                flush()
-            except:
-                pass
-
-        return exit_code
+        return findd.cli.main(args)
     except KeyboardInterrupt:
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             raise

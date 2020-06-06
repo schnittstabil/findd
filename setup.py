@@ -49,10 +49,12 @@ setuptools.setup(
         'progressbar2',
         'shellescape',
         'sqlalchemy',
+        'wheel',
     ],
     entry_points={
         'console_scripts': [
             'findd=findd.cli.__main__:main'
         ],
     },
+    python_requires='>=3.7',
 )

@@ -62,7 +62,7 @@ classes_No_Name.png
 packages_No_Name.png
 
 # virtualenvs
-/.virtualenvs/
+/.venv/
 
 # findd stuff
 .findd
