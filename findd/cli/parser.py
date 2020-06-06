@@ -68,6 +68,7 @@ class ParserBuilder(object):
             help='update the index',
         )
         parser.set_defaults(func=commands.update)
+        ParserBuilder._add_lazy_argument(parser)
 
     def add_list_parser(self):
         parser = self._add_subparser(
@@ -123,6 +124,16 @@ class ParserBuilder(object):
             default=0,
             action='count',
             help='be less verbose',
+        )
+
+    @staticmethod
+    def _add_lazy_argument(parser):
+        parser.add_argument(
+            '--lazy',
+            action='store_const',
+            default=False,
+            const=True,
+            help='update hashes lazily',
         )
 
     @staticmethod

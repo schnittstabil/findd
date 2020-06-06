@@ -2,9 +2,12 @@ from sqlalchemy import Column
 from sqlalchemy import Index
 from sqlalchemy import Integer
 from sqlalchemy import String
+from sqlalchemy import and_
 from sqlalchemy import func
+from sqlalchemy import or_
 from sqlalchemy.ext.declarative import declarative_base
 
+from findd.utils.crypto import hashfile
 
 BASE = declarative_base()
 
@@ -25,6 +28,7 @@ class File(BASE):
     def probably_equal(self, afile):
         if afile is None:
             return False
+
         return (self.size == afile.size and
                 self.sha512 == afile.sha512 and
                 self.sha384 == afile.sha384 and
@@ -50,8 +54,8 @@ Index(
     File.sha224,
     File.sha1,
     File.md5,
-    File.path,    # covering idx
-    File.mtime,   # covering idx
+    File.path,  # covering idx
+    File.mtime,  # covering idx
     unique=True,  # covering idx
 )
 
@@ -67,9 +71,37 @@ class FileRegistry(object):
         """
         self.session = session
 
+    def update_hashes_if_needed(self):
+        duplicate_sizes = self.session \
+            .query(File.size) \
+            .group_by(File.size) \
+            .having(func.count(File.path) > 2)
+        files_to_update = self.session.query(File).filter(and_(
+            File.size.in_(duplicate_sizes.subquery()),
+            or_(
+                File.sha512.is_(None),
+                File.sha384.is_(None),
+                File.sha256.is_(None),
+                File.sha224.is_(None),
+                File.sha1.is_(None),
+                File.md5.is_(None),
+            )
+        )).order_by(File.size.desc())
+
+        for afile in files_to_update:
+            afile.update(hashfile(afile.path))
+            self.session.add(afile)
+            # commit big files immediately
+            if afile.size > 1024 * 1024:
+                self.session.commit()
+        self.session.commit()
+
     def find_duplicates(self, limit=-1):
         if limit == 0:
             return
+
+        self.update_hashes_if_needed()
+
         query = self.session.query(File).order_by(
             File.size.desc(),
             File.sha512,

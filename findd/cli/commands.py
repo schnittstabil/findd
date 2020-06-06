@@ -20,7 +20,7 @@ def update(opts):
     with UpdateView():
         ctx = context.create_from_base_dir()
         ctx.assert_findd_dir_exists()
-        ctx.findd().update(is_excluded=ctx.is_excluded)
+        ctx.findd().update(is_excluded=ctx.is_excluded, lazy=opts.lazy)
 
 
 def list_duplicates(opts):

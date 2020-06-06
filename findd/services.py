@@ -54,11 +54,12 @@ class Findd(object):
         model.create_schema(self.db_session.get_bind())
         progress.finish(self)
 
-    def update(self, is_excluded=None):
+    def update(self, is_excluded=None, lazy=False):
         update_cmd = _UpdateCommand(
             base_dir=self.base_dir,
             file_registry=self.file_registry,
-            is_excluded=is_excluded
+            is_excluded=is_excluded,
+            lazy=lazy
         )
         count = update_cmd.execute()
         self.db_session.commit()
@@ -96,7 +97,7 @@ class HashQueue(object):
         self._queue.append((file_path, file_size, dest or {}))
         self.bytes_to_hash = self.bytes_to_hash + file_size
 
-    def process(self):
+    def process(self, lazy=False):
         progress = Progress('hashing')
 
         __LOG__.debug(
@@ -112,12 +113,14 @@ class HashQueue(object):
                 sizeof_fmt(file_size)
             )
             try:
-                hash_values = hashfile(file_path)
+                if not lazy:
+                    hash_values = hashfile(file_path)
             except Exception as err:
                 __LOG__.exception('hashing of %s failed: ', file_path)
                 self.errors.append(err)
             else:
-                dest.update(hash_values)
+                if not lazy:
+                    dest.update(hash_values)
                 self.processed.append(dest)
             self.bytes_processed = self.bytes_processed + file_size
             progress.update(self, val=self.bytes_processed)
@@ -128,11 +131,12 @@ class HashQueue(object):
 
 class _UpdateCommand(object):
 
-    def __init__(self, base_dir, file_registry, is_excluded=None):
+    def __init__(self, base_dir, file_registry, is_excluded=None, lazy=False):
         assert os.path.exists(base_dir)
         self.base_dir = base_dir
         self.file_registry = file_registry
         self.is_excluded = is_excluded
+        self.lazy = lazy
         self.visited_files = []
         self.hash_queue = HashQueue()
 
@@ -202,7 +206,7 @@ class _UpdateCommand(object):
 
     def execute(self):
         processed_files = self._step0_scan_db() + self._step1_scan_fs()
-        for db_file in self.hash_queue.process():
+        for db_file in self.hash_queue.process(lazy=self.lazy):
             self.file_registry.add(db_file)
         self.visited_files = []
         __LOG__.debug('%d files processed', processed_files)
