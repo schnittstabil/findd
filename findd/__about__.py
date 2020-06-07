@@ -1,4 +1,4 @@
-__version__ = '0.8.8'
+__version__ = '0.9.0'
 __url__ = 'https://github.com/schnittstabil/findd'
 __bugs_url__ = __url__ + '/issues'
 __author__ = 'Michael Mayer'
