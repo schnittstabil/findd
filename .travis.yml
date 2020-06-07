@@ -1,13 +1,17 @@
 language: python
-python: 3
+python:
+- "3.5"
+- "3.6"
+- "3.7"
+- "3.8"
 
 install:
-  - pip install -r requirements-dev.txt
-  - pip install coveralls
-  - python setup.py install
+  - pip3 install -r requirements-dev.txt
+  - pip3 install coveralls
+  - python3 setup.py install
 
 script:
-  - python make.py test
+  - python3 make.py test
 
 after_success:
   - coveralls
