@@ -96,7 +96,7 @@ class FileRegistry(object):
                 self.session.commit()
         self.session.commit()
 
-    def find_duplicates(self, limit=-1):
+    def find_duplicates(self, limit=-1, skip=0):
         if limit == 0:
             return
 
@@ -119,15 +119,16 @@ class FileRegistry(object):
             if afile.probably_equal(pivot_element):
                 duplicates.append(afile)
                 continue
-            if len(duplicates) > 1:
-                yield duplicates
+            if len(duplicates) > 1 and len(duplicates[skip:]) > 0:
+                yield duplicates[skip:]
                 index = index + 1
                 if index == limit:
                     return
             pivot_element = afile
             duplicates = [afile]
-        if len(duplicates) > 1:
-            yield duplicates
+
+        if len(duplicates) > 1 and len(duplicates[skip:]) > 0:
+            yield duplicates[skip:]
 
     def count(self):
         return self.session.query(func.count(File.path)).scalar()

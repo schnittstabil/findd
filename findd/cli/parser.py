@@ -77,6 +77,7 @@ class ParserBuilder(object):
         )
         parser.set_defaults(func=commands.list_duplicates)
         ParserBuilder._add_limit_argument(parser)
+        ParserBuilder._add_skip_argument(parser)
 
     def add_run_parser(self):
         parser = self._add_subparser(
@@ -100,6 +101,7 @@ class ParserBuilder(object):
             help='additional command args',
         )
         ParserBuilder._add_limit_argument(parser)
+        ParserBuilder._add_skip_argument(parser)
 
     def _add_subparser(self, *args, **kwargs):
         subparser = self.subparsers.add_parser(*args, **kwargs)
@@ -129,6 +131,7 @@ class ParserBuilder(object):
     @staticmethod
     def _add_lazy_argument(parser):
         parser.add_argument(
+            '-l',
             '--lazy',
             action='store_const',
             default=False,
@@ -137,11 +140,25 @@ class ParserBuilder(object):
         )
 
     @staticmethod
+    def _add_skip_argument(parser):
+        parser.add_argument(
+            '-s',
+            '--skip',
+            metavar='N',
+            nargs='?',
+            default=0,
+            type=int,
+            help='skip N files per duplicate result set',
+        )
+
+    @staticmethod
     def _add_limit_argument(parser):
         parser.add_argument(
+            '-l',
             '--limit',
             metavar='N',
+            nargs='?',
             default=-1,
             type=int,
-            help='limit duplicate results',
+            help='limit duplicate result sets',
         )
