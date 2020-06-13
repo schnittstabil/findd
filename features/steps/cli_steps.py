@@ -64,6 +64,7 @@ def step_impl(context):
     context.base_dir = base_dir
 
 
+@when('containing files')
 @given('containing files')
 def step_impl(context):
     for row in context.table:

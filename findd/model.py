@@ -75,7 +75,7 @@ class FileRegistry(object):
         duplicate_sizes = self.session \
             .query(File.size) \
             .group_by(File.size) \
-            .having(func.count(File.path) > 2)
+            .having(func.count(File.path) > 1)
         files_to_update = self.session.query(File).filter(and_(
             File.size.in_(duplicate_sizes.subquery()),
             or_(

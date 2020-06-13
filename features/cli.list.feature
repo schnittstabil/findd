@@ -39,6 +39,20 @@ Feature: list duplicates
     Then the exit_code is zero
     And  the stdout_capture matches r"^a dir[/\\]b$"
 
+  Scenario: Run `list` in an non-empty project, updated non-lazyily and lazyily
+    Given an initialized directory
+    And containing files:
+      | path   | content |
+      | a      | 123     |
+    When I run findd with ['update']
+    And containing files:
+      | path   | content |
+      | dir/b  | 123     |
+    When I run findd with ['update', '--lazy']
+    And  I run findd with ['list']
+    Then the exit_code is zero
+    And  the stdout_capture matches r"^a dir[/\\]b$"
+
   Scenario: Run `list` in an non-empty initialized project skipping 2
     Given an initialized directory
     And containing files:
