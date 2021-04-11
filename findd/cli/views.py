@@ -1,5 +1,5 @@
 import logging
-from shellescape import quote
+from shlex import quote
 
 from findd.cli.widgets import hr
 from findd.cli.widgets import ProgressBarManager

@@ -5,7 +5,6 @@ import importlib
 import os
 import shutil
 import subprocess
-import sys
 
 from behave import given, when, then
 from hamcrest import assert_that

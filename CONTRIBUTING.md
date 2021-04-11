@@ -22,6 +22,9 @@ python3 -m venv .venv
 # activate a environment
 . .venv/bin/activate
 
+# update pip
+pip install --upgrade pip
+
 # install dependencies
 python setup.py develop
 pip install -r requirements-dev.txt

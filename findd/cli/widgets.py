@@ -1,7 +1,7 @@
 import itertools
 import time
+from shutil import get_terminal_size
 
-from backports.shutil_get_terminal_size import get_terminal_size
 from blinker import signal
 import progressbar
 

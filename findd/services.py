@@ -5,35 +5,36 @@ from os.path import abspath
 from os.path import join
 from os.path import relpath
 
-from shellescape import quote
+from shlex import quote
+
+from sqlalchemy.orm import Session
 
 from findd import model
-from findd.utils.crypto import hashfile
-from findd.utils.format import sizeof_fmt
+from findd.model import FileRegistry, File
+from findd.queue import HashQueue, HashTask
 from findd.utils.path import files_of_dir
 from findd.utils.progress import Progress
-
 
 __LOG__ = logging.getLogger(__name__)
 
 
-def dir_aware_file_registry(base_dir, file_registry):
+def dir_aware_file_registry(base_dir: str, file_registry: FileRegistry):
     model_find_all = file_registry.find_all
     model_find_duplicates = file_registry.find_duplicates
 
-    def set_paths(afile):
-        afile.base_dir = base_dir
-        afile.abspath = abspath(join(afile.base_dir, afile.path))
-        afile.relpath = relpath(afile.abspath)
-        return afile
+    def set_paths(file_: File):
+        file_.base_dir = base_dir
+        file_.abspath = abspath(join(file_.base_dir, file_.path))
+        file_.relpath = relpath(file_.abspath)
+        return file_
 
     def find_all_(*args, **kwargs):
-        for afile in model_find_all(*args, **kwargs):
-            yield set_paths(afile)
+        for file_ in model_find_all(*args, **kwargs):
+            yield set_paths(file_)
 
     def find_duplicates_(*args, **kwargs):
         for dups in model_find_duplicates(*args, **kwargs):
-            yield [set_paths(afile) for afile in dups]
+            yield [set_paths(file_) for file_ in dups]
 
     file_registry.find_all = find_all_
     file_registry.find_duplicates = find_duplicates_
@@ -42,7 +43,7 @@ def dir_aware_file_registry(base_dir, file_registry):
 
 class Findd(object):
 
-    def __init__(self, base_dir, db_session):
+    def __init__(self, base_dir: str, db_session: Session):
         self.base_dir = base_dir
         self.db_session = db_session
         self._file_registry = None
@@ -54,7 +55,7 @@ class Findd(object):
         model.create_schema(self.db_session.get_bind())
         progress.finish(self)
 
-    def update(self, is_excluded=None, lazy=False):
+    def update(self, is_excluded: bool = None, lazy: bool = False):
         update_cmd = _UpdateCommand(
             base_dir=self.base_dir,
             file_registry=self.file_registry,
@@ -65,7 +66,7 @@ class Findd(object):
         self.db_session.commit()
         return count
 
-    def duplicates(self, limit=-1, skip=0):
+    def duplicates(self, limit: int = -1, skip: int = 0):
         progress = Progress('find duplicates')
         index = 0
         progress.start(self, maxval=limit if limit > 0 else None)
@@ -84,61 +85,16 @@ class Findd(object):
         return self._file_registry
 
 
-class HashQueue(object):
-
-    def __init__(self):
-        self._queue = []
-        self.bytes_to_hash = 0
-        self.errors = []
-        self.processed = []
-        self.bytes_processed = 0
-
-    def append(self, file_path, file_size, dest=None):
-        self._queue.append((file_path, file_size, dest or {}))
-        self.bytes_to_hash = self.bytes_to_hash + file_size
-
-    def process(self, lazy=False):
-        progress = Progress('hashing')
-
-        __LOG__.debug(
-            'hashing %d files (%s)',
-            len(self._queue),
-            sizeof_fmt(self.bytes_to_hash)
-        )
-        progress.start(self, maxval=self.bytes_to_hash)
-        for (file_path, file_size, dest) in self._queue:
-            __LOG__.debug(
-                'hashing %s (%s)...',
-                quote(file_path),
-                sizeof_fmt(file_size)
-            )
-            try:
-                if not lazy:
-                    hash_values = hashfile(file_path)
-            except Exception as err:
-                __LOG__.exception('hashing of %s failed: ', file_path)
-                self.errors.append(err)
-            else:
-                if not lazy:
-                    dest.update(hash_values)
-                self.processed.append(dest)
-            self.bytes_processed = self.bytes_processed + file_size
-            progress.update(self, val=self.bytes_processed)
-        progress.finish(self)
-        __LOG__.debug('%d files hashed', len(self.processed))
-        return self.processed
-
-
 class _UpdateCommand(object):
-
-    def __init__(self, base_dir, file_registry, is_excluded=None, lazy=False):
+    def __init__(self, base_dir: str, file_registry: FileRegistry,
+                 is_excluded: bool = None, lazy: bool = False):
         assert os.path.exists(base_dir)
         self.base_dir = base_dir
         self.file_registry = file_registry
         self.is_excluded = is_excluded
         self.lazy = lazy
         self.visited_files = []
-        self.hash_queue = HashQueue()
+        self.hash_queue = HashQueue(self.file_registry)
 
     def _step0_scan_db(self):
         progress = Progress('scanning db')
@@ -165,7 +121,9 @@ class _UpdateCommand(object):
                 if changed:
                     db_file.mtime = int(stat.st_mtime)
                     db_file.size = stat.st_size
-                    self.hash_queue.append(abs_path, stat.st_size, db_file)
+                    self.hash_queue.append(
+                        HashTask(abs_path, stat.st_size, db_file, self.lazy)
+                    )
                 self.visited_files.append(db_file.path)
             except OSError as err:
                 if err.errno == errno.ENOENT:
@@ -196,9 +154,8 @@ class _UpdateCommand(object):
                     size=entry.stats.st_size,
                 )
                 self.hash_queue.append(
-                    entry.path,
-                    entry.stats.st_size,
-                    db_file
+                    HashTask(entry.path, entry.stats.st_size, db_file,
+                             self.lazy)
                 )
         progress.finish(self)
         __LOG__.debug('%d new files found', new_files_found)
@@ -206,8 +163,7 @@ class _UpdateCommand(object):
 
     def execute(self):
         processed_files = self._step0_scan_db() + self._step1_scan_fs()
-        for db_file in self.hash_queue.process(lazy=self.lazy):
-            self.file_registry.add(db_file)
+        self.hash_queue.process()
         self.visited_files = []
         __LOG__.debug('%d files processed', processed_files)
         return processed_files

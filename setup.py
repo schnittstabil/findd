@@ -43,12 +43,9 @@ setuptools.setup(
     keywords='find duplicates cli database-assisted',
     packages=setuptools.find_packages(),
     install_requires=[
-        'backports.shutil_get_terminal_size',
-        'blinker',
-        'inflection',
-        'progressbar2',
-        'shellescape',
-        'sqlalchemy',
+        'blinker==1.4',
+        'progressbar2==3.53.1',
+        'SQLAlchemy==1.4.7',
         'wheel',
     ],
     entry_points={
@@ -56,5 +53,5 @@ setuptools.setup(
             'findd=findd.cli.__main__:main'
         ],
     },
-    python_requires='>=3.4',
+    python_requires='>=3.6',
 )

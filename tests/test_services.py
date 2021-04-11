@@ -1,4 +1,6 @@
 from mock import patch
+
+from findd.queue import HashTask
 from . import TestCase
 
 from findd.services import HashQueue
@@ -6,12 +8,12 @@ from findd.services import HashQueue
 
 class HashQueueTest(TestCase):
 
-    @patch('findd.services.hashfile')
+    @patch('findd.queue.hashfile')
     def test_should_not_raise_on_ioerrors(self, hashfile):
-        sut = HashQueue()
-        sut.append('a.txt', 1)
-        sut.append('b.txt', 1)
-        sut.append('c.txt', 1)
+        sut = HashQueue(None)
+        sut.append(HashTask('a.txt', 1, {}, False))
+        sut.append(HashTask('b.txt', 1, {}, False))
+        sut.append(HashTask('c.txt', 1, {}, False))
 
         hashfile.side_effect = [
             {'md5': 'a'},
@@ -19,13 +21,6 @@ class HashQueueTest(TestCase):
             {'md5': 'c'},
         ]
 
-        results = sut.process()
+        sut.process()
 
         self.assertEqual(len(hashfile.mock_calls), 3)
-        self.assertEqual(results, [
-            {'md5': 'a'},
-            {'md5': 'c'},
-        ])
-
-        self.assertEqual(len(sut.errors), 1)
-        self.assertIsInstance(sut.errors[0], IOError)
